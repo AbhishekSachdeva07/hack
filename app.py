@@ -1,42 +1,26 @@
 from flask import Flask, render_template, request, jsonify
-from flask_sqlalchemy import SQLAlchemy
 import cv2
 import numpy as np
 from sklearn.cluster import KMeans
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://hack_user:r8mussginw7Reb3cwiu6dcfK7aM1SdQW@localhost/hack'
-db = SQLAlchemy(app)
-
-
-class Product(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    itemName = db.Column(db.String)
-    description = db.Column(db.String)
-    quantity = db.Column(db.Integer)
-    category = db.Column(db.String)
-    material = db.Column(db.String)
-    itemFor = db.Column(db.String)
-    colors = db.Column(db.ARRAY(db.String))
-
 
 def detect_color(image_path, num_colors=3):
     # Load the image
     image = cv2.imread(image_path)
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
+    
     # Reshape the image to a 2D array of pixels
     pixels = image.reshape((-1, 3))
-
+    
     # Perform K-means clustering
     kmeans = KMeans(n_clusters=num_colors)
     kmeans.fit(pixels)
-
+    
     # Get the RGB values of the cluster centers
     colors = kmeans.cluster_centers_
-
+    
     return colors.astype(int)
-
 
 def color_name(rgb):
     # Define color ranges and corresponding names
@@ -66,7 +50,7 @@ def color_name(rgb):
         "DarkRed": [(139, 0, 0)],
         # Add more colors or ranges as needed
     }
-
+    
     # Calculate the Euclidean distance between the input RGB point and each color range
     min_distance = float('inf')
     closest_color = "Unknown"
@@ -76,15 +60,12 @@ def color_name(rgb):
             if distance < min_distance:
                 min_distance = distance
                 closest_color = category
-
+                
     return closest_color
-
-
 
 @app.route('/')
 def index():
     return render_template('index.html')
-
 
 @app.route('/add_product', methods=['POST'])
 def add_product():
@@ -96,29 +77,16 @@ def add_product():
     material = request.form['material']
     item_for = request.form['itemFor']
     image_file = request.files['image']
-
+    
     # Save the image file temporarily
     image_path = 'temp_image.jpg'
     image_file.save(image_path)
 
     # Detect colors in the image
     colors = detect_color(image_path, num_colors=3)
-
+    
     # Convert RGB colors to color names
     color_names = [color_name(color) for color in colors]
-
-    # Save product data to the database
-    product = Product(
-        itemName=item_name,
-        description=description,
-        quantity=quantity,
-        category=category,
-        material=material,
-        itemFor=item_for,
-        colors=color_names
-    )
-    db.session.add(product)
-    db.session.commit()
 
     # Prepare response data
     response_data = {
@@ -136,7 +104,6 @@ def add_product():
     }
 
     return jsonify(response_data)
-
 
 if __name__ == '__main__':
     app.run(debug=True)
