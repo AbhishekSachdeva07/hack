@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 from sklearn.cluster import KMeans
 import requests
+import base64  # Import the base64 module
 
 app = Flask(__name__)
 
@@ -70,61 +71,64 @@ def index():
 
 @app.route('/add_product', methods=['POST'])
 def add_product():
-    # Retrieve data from the request
-    item_name = request.form['itemName']
-    description = request.form['description']
-    quantity = request.form['quantity']
-    category = request.form['category']
-    material = request.form['material']
-    item_for = request.form['itemFor']
-    image_file = request.files['image']
-    
-    # Save the image file temporarily
-    image_path = 'temp_image.jpg'
-    image_file.save(image_path)
+    try:
+        # Retrieve data from the request
+        item_name = request.form['itemName']
+        description = request.form['description']
+        quantity = request.form['quantity']
+        category = request.form['category']
+        material = request.form['material']
+        item_for = request.form['itemFor']
+        image_file = request.files['image']
+        
+        # Save the image file temporarily
+        image_path = 'temp_image.jpg'
+        image_file.save(image_path)
 
-    # Read the image file
-    with open(image_path, "rb") as img_file:
-        img_data = img_file.read()
-    
-    # Encode the image data as base64
-    encoded_image = base64.b64encode(img_data).decode('utf-8')
-    
-    # Detect colors in the image
-    colors = detect_color(image_path, num_colors=3)
-    
-    # Convert RGB colors to color names
-    color_names = [color_name(color) for color in colors]
+        # Read the image file in binary mode
+        with open(image_path, "rb") as img_file:
+            img_data = img_file.read()
+        
+        # Encode the image data as base64
+        encoded_image = base64.b64encode(img_data).decode('utf-8')
+        
+        # Detect colors in the image
+        colors = detect_color(image_path, num_colors=3)
+        
+        # Convert RGB colors to color names
+        color_names = [color_name(color) for color in colors]
 
-    # Prepare response data
-    response_data = {
-        'status': 'success',
-        'message': 'Product added successfully!',
-        'data': {
-            'itemName': item_name,
-            'description': description,
-            'quantity': quantity,
-            'category': category,
-            'material': material,
-            'itemFor': item_for,
-            'colors': color_names
+        # Prepare response data
+        response_data = {
+            'status': 'success',
+            'message': 'Product added successfully!',
+            'data': {
+                'itemName': item_name,
+                'description': description,
+                'quantity': quantity,
+                'category': category,
+                'material': material,
+                'itemFor': item_for,
+                'colors': color_names
+            }
         }
-    }
 
-    # Make API request to detect objects in the image
-    url = "https://objects-detection.p.rapidapi.com/objects-detection"
-    payload = { "image": encoded_image }  # Pass the base64 encoded image data
-    headers = {
-        "content-type": "application/x-www-form-urlencoded",
-        "X-RapidAPI-Key": "6ef9dbfc53mshde7ca70d2dee727p129773jsnfc2f641c1f79",
-        "X-RapidAPI-Host": "objects-detection.p.rapidapi.com"
-    }
-    response = requests.post(url, data=payload, headers=headers)
+        # Make API request to detect objects in the image
+        url = "https://objects-detection.p.rapidapi.com/objects-detection"
+        payload = { "image": encoded_image }  # Pass the base64 encoded image data
+        headers = {
+            "content-type": "application/x-www-form-urlencoded",
+            "X-RapidAPI-Key": "6ef9dbfc53mshde7ca70d2dee727p129773jsnfc2f641c1f79",
+            "X-RapidAPI-Host": "objects-detection.p.rapidapi.com"
+        }
+        response = requests.post(url, data=payload, headers=headers)
 
-    # Append the detected objects to the response data
-    response_data['data']['detected_objects'] = response.json()
+        # Append the detected objects to the response data
+        response_data['data']['detected_objects'] = response.json()
 
-    return jsonify(response_data)
+        return jsonify(response_data)
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
 
 if __name__ == '__main__':
     app.run(debug=True)
