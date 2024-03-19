@@ -218,7 +218,7 @@
                 .then(data => {
                     console.log('Response from server:', data);
                     // Extract colors from the response data
-                    var colors = data.colors;
+                    var colors = JSON.stringify(data.colors);
                     console.log(colors);
                     // Update the colors input field with the detected colors
                     document.getElementById('item-colors').value = colors.join(', ');
