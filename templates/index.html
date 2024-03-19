@@ -218,17 +218,18 @@
     .then(data => {
         console.log('Response from server:', data);
         // Extract colors from the response data
-        var colors = data;
+        var colors = data.data.colors;
         // Update the colors input field with the detected colors
         document.getElementById('item-colors').value = colors.join(', ');
         // You can handle the response here as needed
-        alert('Product added successfully!');
+        alert(data.message);
     })
     .catch(error => {
         console.error('Error:', error);
         alert('An error occurred while adding the product.');
     });
 }
+
 
 
 
