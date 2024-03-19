@@ -1,9 +1,23 @@
 from flask import Flask, render_template, request, jsonify
+from flask_sqlalchemy import SQLAlchemy
 import cv2
 import numpy as np
 from sklearn.cluster import KMeans
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://hack_user:r8mussginw7Reb3cwiu6dcfK7aM1SdQW@localhost/hack'
+db = SQLAlchemy(app)
+
+
+class Product(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    itemName = db.Column(db.String)
+    description = db.Column(db.String)
+    quantity = db.Column(db.Integer)
+    category = db.Column(db.String)
+    material = db.Column(db.String)
+    itemFor = db.Column(db.String)
+    colors = db.Column(db.ARRAY(db.String))
 
 
 def detect_color(image_path, num_colors=3):
@@ -66,6 +80,7 @@ def color_name(rgb):
     return closest_color
 
 
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -91,6 +106,19 @@ def add_product():
 
     # Convert RGB colors to color names
     color_names = [color_name(color) for color in colors]
+
+    # Save product data to the database
+    product = Product(
+        itemName=item_name,
+        description=description,
+        quantity=quantity,
+        category=category,
+        material=material,
+        itemFor=item_for,
+        colors=color_names
+    )
+    db.session.add(product)
+    db.session.commit()
 
     # Prepare response data
     response_data = {
