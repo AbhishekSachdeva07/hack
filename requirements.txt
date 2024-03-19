@@ -2,3 +2,4 @@ Flask
 opencv-python
 numpy
 scikit-learn
+Gunicorn
