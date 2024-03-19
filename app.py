@@ -83,6 +83,13 @@ def add_product():
     image_path = 'temp_image.jpg'
     image_file.save(image_path)
 
+    # Read the image file
+    with open(image_path, "rb") as img_file:
+        img_data = img_file.read()
+    
+    # Encode the image data as base64
+    encoded_image = base64.b64encode(img_data).decode('utf-8')
+    
     # Detect colors in the image
     colors = detect_color(image_path, num_colors=3)
     
@@ -106,7 +113,7 @@ def add_product():
 
     # Make API request to detect objects in the image
     url = "https://objects-detection.p.rapidapi.com/objects-detection"
-    payload = { "url": "https://openmediadata.s3.eu-west-3.amazonaws.com/birds.jpeg" }
+    payload = { "image": encoded_image }  # Pass the base64 encoded image data
     headers = {
         "content-type": "application/x-www-form-urlencoded",
         "X-RapidAPI-Key": "6ef9dbfc53mshde7ca70d2dee727p129773jsnfc2f641c1f79",
