@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify
 import cv2
 import numpy as np
 from sklearn.cluster import KMeans
+import requests
 
 app = Flask(__name__)
 
@@ -102,6 +103,19 @@ def add_product():
             'colors': color_names
         }
     }
+
+    # Make API request to detect objects in the image
+    url = "https://objects-detection.p.rapidapi.com/objects-detection"
+    payload = { "url": "https://openmediadata.s3.eu-west-3.amazonaws.com/birds.jpeg" }
+    headers = {
+        "content-type": "application/x-www-form-urlencoded",
+        "X-RapidAPI-Key": "6ef9dbfc53mshde7ca70d2dee727p129773jsnfc2f641c1f79",
+        "X-RapidAPI-Host": "objects-detection.p.rapidapi.com"
+    }
+    response = requests.post(url, data=payload, headers=headers)
+
+    # Append the detected objects to the response data
+    response_data['data']['detected_objects'] = response.json()
 
     return jsonify(response_data)
 
