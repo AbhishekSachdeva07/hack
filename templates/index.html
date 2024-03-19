@@ -105,6 +105,10 @@
             <label for="item-quantity">Item Quantity:</label>
             <input type="number" id="item-quantity">
 
+            <label for="item-colors">Colors:</label>
+            <input type="text" id="item-colors" readonly>
+
+
             <label for="item-category">Item Category:</label>
             <select id="item-category">
                 <option value="">SELECT THE CATEGORY</option>
@@ -182,40 +186,43 @@
             });
     
             function addProduct() {
-                // Fetch data from the preview fields
-                var itemName = document.getElementById('preview-item-name').textContent;
-                var description = document.getElementById('preview-description').textContent;
-                var quantity = document.getElementById('preview-quantity').textContent;
-                var category = document.getElementById('preview-category').textContent;
-                var material = document.getElementById('preview-material').textContent;
-                var itemFor = document.getElementById('preview-for').textContent;
-    
-                // Prepare data to send to backend
-                var formData = new FormData();
-                formData.append('itemName', itemName);
-                formData.append('description', description);
-                formData.append('quantity', quantity);
-                formData.append('category', category);
-                formData.append('material', material);
-                formData.append('itemFor', itemFor);
-                formData.append('image', document.getElementById('item-image').files[0]);
-    
-                // Send data to backend using fetch
-                fetch('/add_product', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Response from server:', data);
-                    // You can handle the response here as needed
-                    alert('Product added successfully!');
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while adding the product.');
-                });
-            }
+    // Fetch data from the preview fields
+    var itemName = document.getElementById('preview-item-name').textContent;
+    var description = document.getElementById('preview-description').textContent;
+    var quantity = document.getElementById('preview-quantity').textContent;
+    var category = document.getElementById('preview-category').textContent;
+    var material = document.getElementById('preview-material').textContent;
+    var itemFor = document.getElementById('preview-for').textContent;
+
+    // Prepare data to send to backend
+    var formData = new FormData();
+    formData.append('itemName', itemName);
+    formData.append('description', description);
+    formData.append('quantity', quantity);
+    formData.append('category', category);
+    formData.append('material', material);
+    formData.append('itemFor', itemFor);
+    formData.append('image', document.getElementById('item-image').files[0]);
+
+    // Send data to backend using fetch
+    fetch('/add_product', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Response from server:', data);
+        // Insert detected colors into the color field
+        document.getElementById('item-colors').value = data.colors.join(', ');
+        // You can handle the response here as needed
+        alert('Product added successfully!');
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while adding the product.');
+    });
+}
+
         </script>
     </body>
     </html>
